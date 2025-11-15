@@ -134,31 +134,51 @@ class AddressBook(UserDict):
         return result
 
 class Note:
-    def __init__(self, text):
+    def __init__(self, text, tags=None):
         self.text = text
+        self.tags = tags or []   
         self.id = None
 
-    def edit(self, new_text):
-        self.text = new_text
+    def edit(self, new_text=None, new_tags=None):
+        if new_text:
+            self.text = new_text
+        if new_tags is not None:
+            self.tags = new_tags
 
     def __str__(self):
-        return f"[{self.id}] {self.text}"
+        tags_str = ", ".join(self.tags) if self.tags else "—"
+        return f"[{self.id}] {self.text} (tags: {tags_str})"
     
 class NotesBook(UserDict):
     def __init__(self):
         super().__init__()
         self.counter = 1
 
-    def add_note(self, text):
-        note = Note(text)
+    def add_note(self, text, tags=None):
+        note = Note(text, tags)
         note.id = self.counter
         self.data[self.counter] = note
         self.counter += 1
         return note
+
+    def delete_note(self, note_id):
+        if note_id in self.data:
+            del self.data[note_id]
+        else:
+            raise KeyError("Note not found")
+
+    def find_by_tag(self, tag):
     
-    def find_notes(self, query):
-        query = query.lower()
-        return [note for note in self.data.values() if query in note.text.lower()]
+        return [note for note in self.data.values() if tag in note.tags]
+
+    def find_by_keywords(self, keyword):
+        
+        keyword = keyword.lower()
+        return [note for note in self.data.values() if keyword in note.text.lower()]
+
+    def sort_by_tags(self):
+        
+        return sorted(self.data.values(), key=lambda note: (note.tags[0] if note.tags else ""))
 
 if __name__ == "__main__":
     book = AddressBook()
