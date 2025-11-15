@@ -1,5 +1,5 @@
 from collections import UserDict
-from datetime import datetime
+from datetime import datetime, timedelta  
 import re
 
 class Field:
@@ -54,7 +54,9 @@ class Record:
         self.birthday = None
     
     def add_phone(self, phone):
-        self.phones.append(Phone(phone))
+    if any(p.value == phone for p in self.phones):
+        raise ValueError("This phone number already exists.")
+    self.phones.append(Phone(phone))
 
     def set_email(self, email):
         self.email = Email(email)
@@ -107,8 +109,10 @@ class AddressBook(UserDict):
         return self.data.get(name)
 
     def delete(self, name):
-        if name in self.data:
-            del self.data[name]
+    if name in self.data:
+        del self.data[name]
+    else:
+        raise KeyError(f"Record '{name}' not found.")
 
     def birthdays_in_days(self, days: int):
         today = datetime.today().date()
@@ -168,7 +172,6 @@ class NotesBook(UserDict):
             raise KeyError("Note not found")
 
     def find_by_tag(self, tag):
-    
         return [note for note in self.data.values() if tag in note.tags]
 
     def find_by_keywords(self, keyword):
@@ -181,6 +184,7 @@ class NotesBook(UserDict):
         return sorted(self.data.values(), key=lambda note: (note.tags[0] if note.tags else ""))
 
 if __name__ == "__main__":
+
     book = AddressBook()
 
     r = Record("John Doe")
@@ -191,4 +195,25 @@ if __name__ == "__main__":
 
     book.add_record(r)
 
+    print("=== AddressBook Demo ===")
     print(book.find("John Doe"))
+    print()
+
+    notes = NotesBook()
+
+    n1 = notes.add_note("Buy milk", tags=["shopping"])
+    n2 = notes.add_note("Plan vacation", tags=["travel", "summer"])
+    n3 = notes.add_note("Learn Python", tags=["study"])
+
+    print("=== NotesBook Demo ===")
+    print("All notes:")
+    for note in notes.data.values():
+        print(note)
+
+    print("\nFind by tag 'shopping':")
+    for note in notes.find_by_tag("shopping"):
+        print(note)
+
+    print("\nNotes containing 'python':")
+    for note in notes.find_by_keywords("python"):
+        print(note)
